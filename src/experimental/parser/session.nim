@@ -3,25 +3,33 @@ import jsony
 import ../types/session
 from ../../types import Session, SessionKind
 
+proc safeParseBiggestInt(s: string): int64 =
+  try:
+    result = parseBiggestInt(s)
+  except ValueError:
+    result = 0
+
 proc parseSession*(raw: string): Session =
   let session = raw.fromJson(RawSession)
   let kind = if session.kind == "": "oauth" else: session.kind
 
   case kind
   of "oauth":
-    let id = session.oauthToken[0 ..< session.oauthToken.find('-')]
+    let dashPos = session.oauthToken.find('-')
+    let id = if dashPos > 0: session.oauthToken[0 ..< dashPos] else: ""
+    let parsedId = safeParseBiggestInt(id)
     result = Session(
       kind: SessionKind.oauth,
-      id: parseBiggestInt(id),
+      id: parsedId,
       username: session.username,
       oauthToken: session.oauthToken,
       oauthSecret: session.oauthTokenSecret
     )
   of "cookie":
-    let id = if session.id.len > 0: parseBiggestInt(session.id) else: 0
+    let parsedId = safeParseBiggestInt(session.id)
     result = Session(
       kind: SessionKind.cookie,
-      id: id,
+      id: parsedId,
       username: session.username,
       authToken: session.authToken,
       ct0: session.ct0
