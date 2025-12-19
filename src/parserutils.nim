@@ -90,10 +90,15 @@ proc getTimeFromMs*(js: JsonNode): DateTime =
   return fromUnix(seconds).utc()
 
 proc getId*(id: string): int64 {.inline.} =
+  if id.len == 0:
+    return 0
   let start = id.rfind("-")
-  if start < 0:
-    return parseBiggestInt(id)
-  return parseBiggestInt(id[start + 1 ..< id.len])
+  try:
+    if start < 0:
+      return parseBiggestInt(id)
+    return parseBiggestInt(id[start + 1 ..< id.len])
+  except ValueError:
+    return 0
 
 proc getId*(js: JsonNode): int64 {.inline.} =
   case js.kind

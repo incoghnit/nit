@@ -64,7 +64,10 @@ proc toUser*(raw: RawUser): User =
   )
 
   if raw.pinnedTweetIdsStr.len > 0:
-    result.pinnedTweet = parseBiggestInt(raw.pinnedTweetIdsStr[0])
+    try:
+      result.pinnedTweet = parseBiggestInt(raw.pinnedTweetIdsStr[0])
+    except ValueError:
+      result.pinnedTweet = 0
 
   result.expandUserEntities(raw)
 
